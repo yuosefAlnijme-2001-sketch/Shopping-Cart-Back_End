@@ -52,7 +52,7 @@ exports.getAddress = asyncHandler(async (req, res, next) => {
   });
 });
 
-// @desc      Get logged user  addresses
+// @desc      Get All logged user  addresses
 // @route     GET /api/v1/addresses
 // @access    Private/User
 exports.myAddresses = asyncHandler(async (req, res, next) => {

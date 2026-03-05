@@ -12,6 +12,7 @@ const {
   getRelatedProducts,
   getProductsByCategory,
 } = require("../services/productServices");
+
 const {
   CreateProductValidation,
   GetProductValidation,
@@ -19,33 +20,77 @@ const {
   DeleteProductValidation,
 } = require("../utils/validator/productValidation");
 
+const { protect, allowedTo } = require("../services/authServices");
+
 /**
- * @desc  Create Product
- * @route  POST /api/v1/product
- * @access Privte
+ * @desc    Create a new product
+ * @route   POST /api/v1/product
+ * @access  Private (Admin)
  */
+router.post(
+  "/",
+  protect,
+  allowedTo("admin"),
+  uploadProductSingleImage,
+  resizeImage,
+  CreateProductValidation,
+  CreateProduct,
+);
 
-router
-  .route("/")
-  .post(
-    uploadProductSingleImage,
-    resizeImage,
-    CreateProductValidation,
-    CreateProduct,
-  )
-  .get(getProducts);
+/**
+ * @desc    Get all products
+ * @route   GET /api/v1/product
+ * @access  Public
+ */
+router.get("/", getProducts);
 
-router
-  .route("/:id")
-  .get(GetProductValidation, GetProduct)
-  .put(
-    uploadProductSingleImage,
-    resizeImage,
-    UpdateProductValidation,
-    UpdateProduct,
-  )
-  .delete(DeleteProductValidation, deleteProduct);
+/**
+ * @desc    Get a specific product by ID
+ * @route   GET /api/v1/product/:id
+ * @access  Public
+ */
+router.get("/:id", GetProductValidation, GetProduct);
 
-router.route("/:id/productlike").get(getRelatedProducts);
-router.route("/category/:categoryId").get(getProductsByCategory);
+/**
+ * @desc    Update a product
+ * @route   PUT /api/v1/product/:id
+ * @access  Private (Admin)
+ */
+router.put(
+  "/:id",
+  protect,
+  allowedTo("admin"),
+  uploadProductSingleImage,
+  resizeImage,
+  UpdateProductValidation,
+  UpdateProduct,
+);
+
+/**
+ * @desc    Delete a product
+ * @route   DELETE /api/v1/product/:id
+ * @access  Private (Admin)
+ */
+router.delete(
+  "/:id",
+  protect,
+  allowedTo("admin"),
+  DeleteProductValidation,
+  deleteProduct,
+);
+
+/**
+ * @desc    Get related products (like product)
+ * @route   GET /api/v1/product/:id/productlike
+ * @access  Public
+ */
+router.get("/:id/productlike", getRelatedProducts);
+
+/**
+ * @desc    Get products by category
+ * @route   GET /api/v1/product/category/:categoryId
+ * @access  Public
+ */
+router.get("/category/:categoryId", getProductsByCategory);
+
 module.exports = router;

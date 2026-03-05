@@ -9,30 +9,80 @@ const {
   deleteDiscound,
   applyCouponToCart,
 } = require("../services/discountServices");
+
 const {
   CreateDiscountValidation,
   UpdateDiscountValidation,
   DeleteDiscountValidation,
   applyCouponValidator,
 } = require("../utils/validator/discountValidation");
-const authServces = require("../services/authServices");
-router
-  .route("/")
-  .post(CreateDiscountValidation, CreateDiscound)
-  .get(getDiscounds);
 
-// apply coupon
+const { protect, allowedTo } = require("../services/authServices");
+
+/**
+ * @desc    Create new discount / coupon
+ * @route   POST /api/v1/discount
+ * @access  Private (Admin)
+ */
+router.post(
+  "/",
+  protect,
+  allowedTo("admin"),
+  CreateDiscountValidation,
+  CreateDiscound,
+);
+
+/**
+ * @desc    Get all discounts / coupons
+ * @route   GET /api/v1/discount
+ * @access  Public
+ */
+router.get("/", getDiscounds);
+
+/**
+ * @desc    Get specific discount
+ * @route   GET /api/v1/discount/:id
+ * @access  Public
+ */
+router.get("/:id", GetDiscound);
+
+/**
+ * @desc    Update discount
+ * @route   PUT /api/v1/discount/:id
+ * @access  Private (Admin)
+ */
+router.put(
+  "/:id",
+  protect,
+  allowedTo("admin"),
+  UpdateDiscountValidation,
+  UpdateDiscound,
+);
+
+/**
+ * @desc    Delete discount
+ * @route   DELETE /api/v1/discount/:id
+ * @access  Private (Admin)
+ */
+router.delete(
+  "/:id",
+  protect,
+  allowedTo("admin"),
+  DeleteDiscountValidation,
+  deleteDiscound,
+);
+
+/**
+ * @desc    Apply coupon to logged user cart
+ * @route   PUT /api/v1/discount/applyCoupon
+ * @access  Private (User)
+ */
 router.put(
   "/applyCoupon",
-  authServces.protect,
+  protect,
+  allowedTo("user"),
   applyCouponValidator,
   applyCouponToCart,
 );
-
-router
-  .route("/:id")
-  .get(GetDiscound)
-  .put(UpdateDiscountValidation, UpdateDiscound)
-  .delete(DeleteDiscountValidation, deleteDiscound);
 
 module.exports = router;

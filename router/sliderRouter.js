@@ -10,6 +10,7 @@ const {
   UpdateSlider,
   deleteSlider,
 } = require("../services/sliderServices");
+
 const {
   CreateSliderValidation,
   GetSliderValidation,
@@ -17,24 +18,63 @@ const {
   DeleteSliderValidation,
 } = require("../utils/validator/sliderValidation");
 
-router
-  .route("/")
-  .post(
-    uploadSliderSingleImage,
-    resizeImage,
-    CreateSliderValidation,
-    CreateSlider,
-  )
-  .get(getSliders);
+const { protect, allowedTo } = require("../services/authServices");
 
-router
-  .route("/:id")
-  .get(GetSliderValidation, GetSlider)
-  .put(
-    uploadSliderSingleImage,
-    resizeImage,
-    UpdateSliderValidation,
-    UpdateSlider,
-  )
-  .delete(DeleteSliderValidation, deleteSlider);
+/**
+ * @desc    Get all sliders
+ * @route   GET /api/v1/slider
+ * @access  Public
+ */
+router.get("/", getSliders);
+
+/**
+ * @desc    Create a new slider
+ * @route   POST /api/v1/slider
+ * @access  Private/Admin
+ */
+router.post(
+  "/",
+  protect,
+  allowedTo("admin"),
+  uploadSliderSingleImage,
+  resizeImage,
+  CreateSliderValidation,
+  CreateSlider,
+);
+
+/**
+ * @desc    Get a specific slider by ID
+ * @route   GET /api/v1/slider/:id
+ * @access  Public
+ */
+router.get("/:id", GetSliderValidation, GetSlider);
+
+/**
+ * @desc    Update a slider
+ * @route   PUT /api/v1/slider/:id
+ * @access  Private/Admin
+ */
+router.put(
+  "/:id",
+  protect,
+  allowedTo("admin"),
+  uploadSliderSingleImage,
+  resizeImage,
+  UpdateSliderValidation,
+  UpdateSlider,
+);
+
+/**
+ * @desc    Delete a slider
+ * @route   DELETE /api/v1/slider/:id
+ * @access  Private/Admin
+ */
+router.delete(
+  "/:id",
+  protect,
+  allowedTo("admin"),
+  DeleteSliderValidation,
+  deleteSlider,
+);
+
 module.exports = router;

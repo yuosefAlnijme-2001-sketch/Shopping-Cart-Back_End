@@ -17,7 +17,7 @@ const app = express();
 
 app.use(express.static(path.join(__dirname, "uploads")));
 app.use(cors());
-app.options("*", cors());
+// app.options("*", cors());
 
 app.use(compression());
 

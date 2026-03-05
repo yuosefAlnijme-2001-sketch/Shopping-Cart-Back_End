@@ -10,16 +10,58 @@ const {
   updateOrderPaid,
   checkoutSession,
 } = require("../services/orderServices");
+
 const authServces = require("../services/authServices");
 
-router.get("/checkout-session/:cartId", authServces.protect, checkoutSession);
+// checkout stripe
+router.get(
+  "/checkout-session/:cartId",
+  authServces.protect,
+  authServces.allowedTo("user"),
+  checkoutSession
+);
 
-router.route("/:cartId").post(authServces.protect, createCashOrder);
+// create order
+router.post(
+  "/:cartId",
+  authServces.protect,
+  authServces.allowedTo("user"),
+  createCashOrder
+);
 
-router.get("/", authServces.protect, filterOrderForLoggedUser, getAllOrder);
-router.get("/:id", authServces.protect, getOrder);
+// get orders (user + admin)
+router.get(
+  "/",
+  authServces.protect,
+  authServces.allowedTo("user", "admin"),
+  filterOrderForLoggedUser,
+  getAllOrder
+);
 
-// Admin
-router.put("/:id/pay", authServces.protect, updateOrderPaid);
-router.put("/:id/deliver", authServces.protect, updateOrderDelivered);
+// get single order
+router.get(
+  "/:id",
+  authServces.protect,
+  authServces.allowedTo("user", "admin"),
+  getOrder
+);
+
+// ================= ADMIN =================
+
+// update paid
+router.put(
+  "/:id/pay",
+  authServces.protect,
+  authServces.allowedTo("admin"),
+  updateOrderPaid
+);
+
+// update delivered
+router.put(
+  "/:id/deliver",
+  authServces.protect,
+  authServces.allowedTo("admin"),
+  updateOrderDelivered
+);
+
 module.exports = router;

@@ -15,24 +15,37 @@ const {
   removeCartItemValidator,
 } = require("../utils/validator/cartValidation");
 
-const { protect } = require("../services/authServices");
+const { protect, allowedTo } = require("../services/authServices");
 
 // add to cart
-router.post("/", protect, addToCartValidator, addProductsToCart);
+router.post(
+  "/",
+  protect,
+  allowedTo("user"),
+  addToCartValidator,
+  addProductsToCart,
+);
 
 // get cart
-router.get("/", protect, getLoggedUserCart);
+router.get("/", protect, allowedTo("user"), getLoggedUserCart);
 
 // remove item
-router.delete("/:itemId", protect, removeCartItemValidator, removeCartProduct);
+router.delete(
+  "/:itemId",
+  protect,
+  allowedTo("user"),
+  removeCartItemValidator,
+  removeCartProduct,
+);
 
 // clear cart
-router.delete("/", protect, clearLoggedUserCart);
+router.delete("/", protect, allowedTo("user"), clearLoggedUserCart);
 
 // update quantity
 router.put(
   "/:itemId",
   protect,
+  allowedTo("user"),
   updateCartItemValidator,
   updateCartProductCount,
 );
