@@ -33,20 +33,6 @@ router.post(
 );
 
 /**
- * @desc    Get all discounts / coupons
- * @route   GET /api/v1/discount
- * @access  Public
- */
-router.get("/", getDiscounds);
-
-/**
- * @desc    Get specific discount
- * @route   GET /api/v1/discount/:id
- * @access  Public
- */
-router.get("/:id", GetDiscound);
-
-/**
  * @desc    Update discount
  * @route   PUT /api/v1/discount/:id
  * @access  Private (Admin)
@@ -84,5 +70,17 @@ router.put(
   applyCouponValidator,
   applyCouponToCart,
 );
+/**
+ * @desc    Get all discounts / coupons
+ * @route   GET /api/v1/discount
+ * @access  Public
+ */
+router.get("/", getDiscounds);
 
+/**
+ * @desc    Get specific discount
+ * @route   GET /api/v1/discount/:id
+ * @access  Public
+ */
+router.get("/:id", GetDiscound);
 module.exports = router;
