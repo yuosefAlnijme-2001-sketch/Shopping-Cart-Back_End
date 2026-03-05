@@ -33,19 +33,6 @@ router.post(
 );
 
 /**
- * @desc    Apply coupon to logged user cart
- * @route   PUT /api/v1/discount/applyCoupon
- * @access  Private (User)
- */
-router.put(
-  "/applyCoupon",
-  protect,
-  allowedTo("user"),
-  applyCouponValidator,
-  applyCouponToCart,
-);
-
-/**
  * @desc    Get all discounts / coupons
  * @route   GET /api/v1/discount
  * @access  Public
@@ -84,5 +71,16 @@ router.delete(
   DeleteDiscountValidation,
   deleteDiscound,
 );
-
+/**
+ * @desc    Apply coupon to logged user cart
+ * @route   PUT /api/v1/discount/applyCoupon
+ * @access  Private (User)
+ */
+router.put(
+  "/applyCoupon",
+  protect,
+  allowedTo("user", "admin"),
+  applyCouponValidator,
+  applyCouponToCart,
+);
 module.exports = router;
