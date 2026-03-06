@@ -223,8 +223,8 @@ exports.checkoutSession = asyncHandler(async (req, res, next) => {
 
     // success_url: `${req.protocol}://${req.get("host")}/dashpord/orders`,
     // cancel_url: `${req.protocol}://${req.get("host")}/cart`,
-    success_url: `http://localhost:5173/dashpord/orders`,
-    cancel_url: `http://localhost:5173/cart`,
+    success_url: `https://cheerful-pudding-4a2331.netlify.app/dashpord/orders`,
+    cancel_url: `https://cheerful-pudding-4a2331.netlify.app/cart`,
 
     customer_email: req.user.email,
 
