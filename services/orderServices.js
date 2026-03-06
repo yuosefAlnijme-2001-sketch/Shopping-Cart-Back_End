@@ -221,8 +221,10 @@ exports.checkoutSession = asyncHandler(async (req, res, next) => {
       },
     ],
 
-    success_url: `${req.protocol}://${req.get("host")}/dashpord/orders`,
-    cancel_url: `${req.protocol}://${req.get("host")}/cart`,
+    // success_url: `${req.protocol}://${req.get("host")}/dashpord/orders`,
+    // cancel_url: `${req.protocol}://${req.get("host")}/cart`,
+    success_url: `http://localhost:5173/dashpord/orders`,
+    cancel_url: `http://localhost:5173/cart`,
 
     customer_email: req.user.email,
 
