@@ -18,7 +18,7 @@ router.get(
   "/checkout-session/:cartId",
   authServces.protect,
   authServces.allowedTo("user"),
-  checkoutSession
+  checkoutSession,
 );
 
 // create order
@@ -26,7 +26,7 @@ router.post(
   "/:cartId",
   authServces.protect,
   authServces.allowedTo("user"),
-  createCashOrder
+  createCashOrder,
 );
 
 // get orders (user + admin)
@@ -35,7 +35,7 @@ router.get(
   authServces.protect,
   authServces.allowedTo("user", "admin"),
   filterOrderForLoggedUser,
-  getAllOrder
+  getAllOrder,
 );
 
 // get single order
@@ -43,7 +43,7 @@ router.get(
   "/:id",
   authServces.protect,
   authServces.allowedTo("user", "admin"),
-  getOrder
+  getOrder,
 );
 
 // ================= ADMIN =================
@@ -53,7 +53,7 @@ router.put(
   "/:id/pay",
   authServces.protect,
   authServces.allowedTo("admin"),
-  updateOrderPaid
+  updateOrderPaid,
 );
 
 // update delivered
@@ -61,7 +61,7 @@ router.put(
   "/:id/deliver",
   authServces.protect,
   authServces.allowedTo("admin"),
-  updateOrderDelivered
+  updateOrderDelivered,
 );
 
 module.exports = router;
