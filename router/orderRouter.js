@@ -14,7 +14,7 @@ const {
 const authServces = require("../services/authServices");
 
 // checkout stripe
-router.post(
+router.get(
   "/checkout-session/:cartId",
   authServces.protect,
   authServces.allowedTo("user"),
