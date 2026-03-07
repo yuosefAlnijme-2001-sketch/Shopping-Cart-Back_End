@@ -75,67 +75,6 @@ exports.filterOrderForLoggedUser = asyncHandler(async (req, res, next) => {
 
 exports.getAllOrder = Factory.getAll(Order);
 exports.getOrder = Factory.getOne(Order);
-// exports.createCashOrder = asyncHandler(async (req, res, next) => {
-//   const taxPrice = 0;
-//   const shippingPrice = 0;
-
-//   // 1. Get cart
-//   const cart = await Cart.findById(req.params.id);
-
-//   if (!cart) {
-//     return next(
-//       new ApiError(`There is no cart with id ${req.params.id}`, 404)
-//     );
-//   }
-
-//   if (cart.cartItems.length === 0) {
-//     return next(new ApiError("Cart is empty", 400));
-//   }
-
-//   // Authorization
-//   if (cart.user.toString() !== req.user._id.toString()) {
-//     return next(new ApiError("You are not authorized", 403));
-//   }
-
-//   // 2. Calculate price
-//   const cartPrice = cart.totalPriceAfterDiscount
-//     ? cart.totalPriceAfterDiscount
-//     : cart.totalCartPrice;
-
-//   const totalOrderPrice = cartPrice + taxPrice + shippingPrice;
-
-//   // 3. Create order
-//   const order = await Order.create({
-//     user: req.user._id,
-//     cartItems: cart.cartItems,
-//     shippingAddress: req.body.shippingAddress,
-//     totalOrderPrice,
-//   });
-
-//   // 4. Update products
-//   const bulkOption = cart.cartItems.map((item) => ({
-//     updateOne: {
-//       filter: { _id: item.product },
-//       update: {
-//         $inc: {
-//           quantity: -item.quantity,
-//           sold: +item.quantity,
-//         },
-//       },
-//     },
-//   }));
-
-//   await Product.bulkWrite(bulkOption);
-
-//   // 5. Clear cart
-//   await Cart.findByIdAndDelete(req.params.id);
-
-//   res.status(201).json({
-//     status: "success",
-//     data: order,
-//   });
-// });
-
 // @ desc Update order
 // @router put /api/v1/order/:id/pay
 // @access Protected/Admin
@@ -178,111 +117,149 @@ exports.updateOrderDelivered = asyncHandler(async (req, res, next) => {
 // @route   GET /api/orders/checkout-session/cartId
 // @access  Private/User
 
+// exports.checkoutSession = asyncHandler(async (req, res, next) => {
+//   const taxPrice = 0;
+//   const shippingPrice = 0;
+//   // بدنا نجيب الكارت ونتاكد اذا كان موجود ولا لا
+//   // Get cart depend on CartId
+//   const cart = await Cart.findById(req.params.cartId);
+//   if (!cart) {
+//     return next(
+//       new ApiError(`There is no such with cart id ${req.params.cartId}`, 404),
+//     );
+//   }
+//   if (cart.cartItems.length === 0) {
+//     return next(new ApiError("Cart is empty", 400));
+//   }
+//   // Authorization
+//   if (cart.user.toString() !== req.user._id.toString()) {
+//     return next(new ApiError("You are not authorized", 403));
+//   }
+//   console.log(cart.cartItems);
+//   //   بدنا انجيب الكارت يلي بلاوردر ونتاكد اذا كان في الو خصم ولا لا
+//   // Get order price depend on cart price "Check if coupone applay"
+//   const cartPrice = cart.totalPriceAfterDiscound
+//     ? cart.totalPriceAfterDiscound
+//     : cart.totalCartPrice;
+
+//   const totalOrderPrice = cartPrice + taxPrice + shippingPrice;
+
+//   // 3 Create stripe checkout session
+//   const session = await stripe.checkout.sessions.create({
+//     mode: "payment",
+
+//     line_items: [
+//       {
+//         price_data: {
+//           currency: "usd",
+//           unit_amount: totalOrderPrice * 100,
+//           product_data: {
+//             name: `Order by ${req.user.firstName + " " + req.user.lastName} `,
+//           },
+//         },
+//         quantity: 1,
+//       },
+//     ],
+
+//     // success_url: `${req.protocol}://${req.get("host")}/dashpord/orders`,
+//     // cancel_url: `${req.protocol}://${req.get("host")}/cart`,
+//     success_url: `https://cheerful-pudding-4a2331.netlify.app/dashpord/orders`,
+//     cancel_url: `https://cheerful-pudding-4a2331.netlify.app/cart`,
+
+//     customer_email: req.user.email,
+
+//     client_reference_id: req.params.cartId,
+//     metadata: req.body.shippingAddress,
+//     // metadata: {
+//     //   address: JSON.stringify(req.body.shippingAddress),
+//     // },
+//   });
+//   // Send session to res
+//   res.status(200).json({
+//     status: "success",
+//     session,
+//   });
+// });
 exports.checkoutSession = asyncHandler(async (req, res, next) => {
+  // app settings
   const taxPrice = 0;
   const shippingPrice = 0;
-  // بدنا نجيب الكارت ونتاكد اذا كان موجود ولا لا
-  // Get cart depend on CartId
+
+  // 1) Get cart depend on cartId
   const cart = await Cart.findById(req.params.cartId);
   if (!cart) {
     return next(
-      new ApiError(`There is no such with cart id ${req.params.cartId}`, 404),
+      new ApiError(`There is no such cart with id ${req.params.cartId}`, 404),
     );
   }
-  if (cart.cartItems.length === 0) {
-    return next(new ApiError("Cart is empty", 400));
-  }
-  // Authorization
-  if (cart.user.toString() !== req.user._id.toString()) {
-    return next(new ApiError("You are not authorized", 403));
-  }
-  //   بدنا انجيب الكارت يلي بلاوردر ونتاكد اذا كان في الو خصم ولا لا
-  // Get order price depend on cart price "Check if coupone applay"
+
+  // 2) Get order price depend on cart price "Check if coupon apply"
   const cartPrice = cart.totalPriceAfterDiscound
     ? cart.totalPriceAfterDiscound
     : cart.totalCartPrice;
 
   const totalOrderPrice = cartPrice + taxPrice + shippingPrice;
 
-  // 3 Create stripe checkout session
+  // 3) Create stripe checkout session
   const session = await stripe.checkout.sessions.create({
-    mode: "payment",
-
     line_items: [
       {
-        price_data: {
-          currency: "usd",
-          unit_amount: totalOrderPrice * 100,
-          product_data: {
-            name: `Order by ${req.user.firstName + " " + req.user.lastName} `,
-          },
-        },
+        name: req.user.name,
+        amount: totalOrderPrice * 100,
+        currency: "usd",
         quantity: 1,
       },
     ],
-
-    // success_url: `${req.protocol}://${req.get("host")}/dashpord/orders`,
-    // cancel_url: `${req.protocol}://${req.get("host")}/cart`,
-    success_url: `https://cheerful-pudding-4a2331.netlify.app/dashpord/orders`,
-    cancel_url: `https://cheerful-pudding-4a2331.netlify.app/cart`,
-
+    mode: "payment",
+    success_url: `${req.protocol}://${req.get("host")}/dashpord/orders`,
+    cancel_url: `${req.protocol}://${req.get("host")}/cart`,
     customer_email: req.user.email,
-
-    client_reference_id: cart._id.toString(),
-
-    metadata: {
-      address: JSON.stringify(req.body.shippingAddress),
-    },
+    client_reference_id: req.params.cartId,
+    metadata: req.body.shippingAddress,
   });
-  // Send session to res
-  res.status(200).json({
-    status: "success",
-    session,
-  });
+
+  // 4) send session to response
+  res.status(200).json({ status: "success", session });
 });
 
-const createOrderFromSession = async (session) => {
+const createCardOrder = async (session) => {
   const cartId = session.client_reference_id;
-  const shippingAddress = JSON.parse(session.metadata.address);
-  const orderPrice = session.amount_total / 100;
+  const shippingAddress = session.metadata;
+  const oderPrice = session.amount_total / 100;
 
   const cart = await Cart.findById(cartId);
-  if (!cart) return;
   const user = await User.findOne({ email: session.customer_email });
 
-  // Create Order Card
+  // 3) Create order with default paymentMethodType card
   const order = await Order.create({
     user: user._id,
     cartItems: cart.cartItems,
     shippingAddress,
-    totalOrderPrice: orderPrice,
+    totalOrderPrice: oderPrice,
     isPaid: true,
     paidAt: Date.now(),
     paymentMethodType: "card",
   });
-  //   After create order decriments Product Qut incremnt Product Sold
+
+  // 4) After creating order, decrement product quantity, increment product sold
   if (order) {
     const bulkOption = cart.cartItems.map((item) => ({
       updateOne: {
-        filter: {
-          _id: item.product,
-        },
-        update: {
-          // قلل ال quantity
-          // وزود ال Sold
-          $inc: {
-            quantity: -item.quantity,
-            sold: +item.quantity,
-          },
-        },
+        filter: { _id: item.product },
+        update: { $inc: { quantity: -item.quantity, sold: +item.quantity } },
       },
     }));
     await Product.bulkWrite(bulkOption, {});
+
+    // 5) Clear cart depend on cartId
     await Cart.findByIdAndDelete(cartId);
   }
 };
 
-exports.webhookCheckout = async (req, res) => {
+// @desc    This webhook will run when stripe payment success paid
+// @route   POST /webhook-checkout
+// @access  Protected/User
+exports.webhookCheckout = asyncHandler(async (req, res, next) => {
   const sig = req.headers["stripe-signature"];
 
   let event;
@@ -296,14 +273,10 @@ exports.webhookCheckout = async (req, res) => {
   } catch (err) {
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
-
-  // ✅ أهم event
   if (event.type === "checkout.session.completed") {
-    const session = event.data.object;
-
-    // 🔥 هون تنشئ الأوردر
-    await createOrderFromSession(session);
+    //  Create order
+    createCardOrder(event.data.object);
   }
 
   res.status(200).json({ received: true });
-};
+});
